@@ -1,14 +1,12 @@
 package graficos;
 
 import benchmark.ResultadoBenchmark;
-import benchmark.ExportadorJSON;
-
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import javax.imageio.ImageIO;
 
 /**
  * Genera gráficos de barras y líneas para las métricas del benchmark.
