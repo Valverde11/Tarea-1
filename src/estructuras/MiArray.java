@@ -80,6 +80,15 @@ public class MiArray<T> {
         return 16 + (capacidad * 4L);
     }
 
+    // Copia profunda del arreglo
+    public MiArray<T> copy() {
+        MiArray<T> nueva = new MiArray<>(capacidad);
+        for (int i = 0; i < tamanio; i++) {
+            nueva.insertarAlFinal((T) datos[i]);
+        }
+        return nueva;
+    }
+
     public int getTamanio() { return tamanio; }
 
     private void asegurarCapacidad() {

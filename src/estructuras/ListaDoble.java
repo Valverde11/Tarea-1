@@ -126,6 +126,17 @@ public class ListaDoble<T> {
         return tamanio * 28L;
     }
 
+    // Copia profunda de la lista
+    public ListaDoble<T> copy() {
+        ListaDoble<T> nueva = new ListaDoble<>();
+        Nodo<T> actual = cabeza;
+        while (actual != null) {
+            nueva.insertarAlFinal(actual.dato);
+            actual = actual.siguiente;
+        }
+        return nueva;
+    }
+
     public int getTamanio() { return tamanio; }
 
     @Override
