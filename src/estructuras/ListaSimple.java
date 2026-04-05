@@ -99,6 +99,17 @@ public class ListaSimple<T> {
         return tamanio * 24L;
     }
 
+    // Copia profunda de la lista
+    public ListaSimple<T> copy() {
+        ListaSimple<T> nueva = new ListaSimple<>();
+        Nodo<T> actual = cabeza;
+        while (actual != null) {
+            nueva.insertarAlFinal(actual.dato);
+            actual = actual.siguiente;
+        }
+        return nueva;
+    }
+
     public int getTamanio() { return tamanio; }
 
     @Override

@@ -140,6 +140,16 @@ public class DoubleEndedList<T> {
     public long usoMemoria() { return tamanio * 28L; }
     public int getTamanio()  { return tamanio; }
 
+    public DoubleEndedList<T> copy() {
+        DoubleEndedList<T> nueva = new DoubleEndedList<>();
+        Nodo<T> actual = cabeza;
+        while (actual != null) {
+            nueva.insertarAlFinal(actual.dato);
+            actual = actual.siguiente;
+        }
+        return nueva;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[");

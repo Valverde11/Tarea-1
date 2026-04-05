@@ -110,6 +110,20 @@ public class ListaCircular<T> {
     }
 
     public long usoMemoria() { return tamanio * 24L; }
+
+    // Copia profunda de la lista
+    public ListaCircular<T> copy() {
+        ListaCircular<T> nueva = new ListaCircular<>();
+        if (cabeza != null) {
+            Nodo<T> actual = cabeza;
+            for (int i = 0; i < tamanio; i++) {
+                nueva.insertarAlFinal(actual.dato);
+                actual = actual.siguiente;
+            }
+        }
+        return nueva;
+    }
+
     public int getTamanio()  { return tamanio; }
 
     @Override
