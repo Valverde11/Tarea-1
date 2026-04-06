@@ -28,6 +28,19 @@ public class GeneradorGraficos {
         COLORES.put("QueueLista", new Color(139, 69, 19));
     }
 
+    // Colores específicos para los escenarios
+    private static final Map<String, Color> COLORES_ESC = new LinkedHashMap<>();
+    static {
+        COLORES_ESC.put("E1_StackArray", new Color(255, 215, 0));
+        COLORES_ESC.put("E1_StackLista", new Color(64, 224, 208));
+        COLORES_ESC.put("E1_QueueArray", new Color(255, 105, 180));
+        COLORES_ESC.put("E1_QueueLista", new Color(139, 69, 19));
+        COLORES_ESC.put("E2_QueueArray", new Color(255, 105, 180));
+        COLORES_ESC.put("E2_QueueLista", new Color(139, 69, 19));
+        COLORES_ESC.put("E2_StackArray", new Color(255, 215, 0));
+        COLORES_ESC.put("E2_StackLista", new Color(64, 224, 208));
+    }
+
     private static final int ANCHO = 900;
     private static final int ALTO = 550;
     private static final int MARGEN_I = 90;
@@ -88,22 +101,30 @@ public class GeneradorGraficos {
         cargarPromedios("resultados", promediosEsc, memoriaEsc, "escenarios_corrida_");
 
         // Gráfico 10: Escenario 1 - Undo: tiempo de insertar
-        graficoLinea(promediosEsc, "insertar", tamanios,
+        graficoEscenario(promediosEsc, "insertar",
+                new String[] { "E1_StackArray", "E1_StackLista", "E1_QueueArray", "E1_QueueLista" },
+                tamanios,
                 "Escenario 1 (Undo): Tiempo de Inserción - Stack vs Queue",
                 "graficos/esc1_insertar.png");
 
         // Gráfico 11: Escenario 1 - Undo: tiempo de deshacer
-        graficoLinea(promediosEsc, "deshacer", tamanios,
+        graficoEscenario(promediosEsc, "deshacer",
+                new String[] { "E1_StackArray", "E1_StackLista", "E1_QueueArray", "E1_QueueLista" },
+                tamanios,
                 "Escenario 1 (Undo): Tiempo de Deshacer - Stack (correcto) vs Queue (incorrecto)",
                 "graficos/esc1_deshacer.png");
 
         // Gráfico 12: Escenario 2 - FIFO: tiempo de encolar
-        graficoLinea(promediosEsc, "encolar", tamanios,
+        graficoEscenario(promediosEsc, "encolar",
+                new String[] { "E2_QueueArray", "E2_QueueLista", "E2_StackArray", "E2_StackLista" },
+                tamanios,
                 "Escenario 2 (FIFO): Tiempo de Encolar - Queue vs Stack",
                 "graficos/esc2_encolar.png");
 
         // Gráfico 13: Escenario 2 - FIFO: tiempo de atender
-        graficoLinea(promediosEsc, "atender", tamanios,
+        graficoEscenario(promediosEsc, "atender",
+                new String[] { "E2_QueueArray", "E2_QueueLista", "E2_StackArray", "E2_StackLista" },
+                tamanios,
                 "Escenario 2 (FIFO): Tiempo de Atender - Queue (correcto) vs Stack (incorrecto)",
                 "graficos/esc2_atender.png");
 
@@ -420,6 +441,71 @@ public class GeneradorGraficos {
             g.setColor(Color.DARK_GRAY);
             g.drawString(etiquetas[i], ex + 20, ey);
             col++;
+        }
+
+        g.dispose();
+        ImageIO.write(img, "PNG", new File(archivo));
+        System.out.println("Gráfico guardado: " + archivo);
+    }
+
+    /**
+     * Gráfico de líneas para escenarios: usa COLORES_ESC y solo dibuja
+     * las estructuras indicadas en el arreglo 'estructuras'.
+     */
+    private static void graficoEscenario(Map<String, Map<String, Map<Integer, Long>>> datos,
+            String operacion, String[] estructuras,
+            int[] tamanios, String titulo, String archivo) throws Exception {
+        BufferedImage img = new BufferedImage(ANCHO, ALTO, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, ANCHO, ALTO);
+
+        long maxTiempo = 1;
+        for (String est : estructuras) {
+            if (datos.containsKey(est) && datos.get(est).containsKey(operacion))
+                for (long v : datos.get(est).get(operacion).values())
+                    if (v > maxTiempo)
+                        maxTiempo = v;
+        }
+
+        int areaAncho = ANCHO - MARGEN_I - MARGEN_D;
+        int areaAlto = ALTO - MARGEN_S - MARGEN_B;
+
+        dibujarEjes(g, areaAncho, areaAlto, tamanios, maxTiempo, "Tiempo (ns)");
+        dibujarTitulo(g, titulo);
+
+        for (String est : estructuras) {
+            if (!datos.containsKey(est) || !datos.get(est).containsKey(operacion))
+                continue;
+            Map<Integer, Long> puntos = datos.get(est).get(operacion);
+            Color color = COLORES_ESC.getOrDefault(est, Color.GRAY);
+            g.setColor(color);
+            g.setStroke(new BasicStroke(2.5f));
+
+            int[] xs = new int[tamanios.length];
+            int[] ys = new int[tamanios.length];
+            for (int i = 0; i < tamanios.length; i++) {
+                xs[i] = MARGEN_I + (int) ((double) i / (tamanios.length - 1) * areaAncho);
+                long val = puntos.getOrDefault(tamanios[i], 0L);
+                ys[i] = MARGEN_S + areaAlto - (int) ((double) val / maxTiempo * areaAlto);
+            }
+            for (int i = 0; i < xs.length - 1; i++) {
+                g.drawLine(xs[i], ys[i], xs[i + 1], ys[i + 1]);
+                g.fillOval(xs[i] - 4, ys[i] - 4, 8, 8);
+            }
+            g.fillOval(xs[xs.length - 1] - 4, ys[ys.length - 1] - 4, 8, 8);
+        }
+
+        // Leyenda
+        int lx = MARGEN_I + 10, ly = ALTO - MARGEN_B + 30;
+        g.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        for (int i = 0; i < estructuras.length; i++) {
+            int ex = lx + i * 200;
+            g.setColor(COLORES_ESC.getOrDefault(estructuras[i], Color.GRAY));
+            g.fillRect(ex, ly - 10, 16, 12);
+            g.setColor(Color.DARK_GRAY);
+            g.drawString(estructuras[i], ex + 20, ly);
         }
 
         g.dispose();
