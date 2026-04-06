@@ -82,15 +82,51 @@ public class GeneradorGraficos {
         graficoStackVsQueue(promediosTiempo, tamanios,
                 "Stack vs Queue: Comparación de Operaciones", "graficos/stack_vs_queue.png");
 
+        // ── Gráficos de escenarios (leen escenarios_corrida_*.json) ──────
+        Map<String, Map<String, Map<Integer, Long>>> promediosEsc = new HashMap<>();
+        Map<String, Map<Integer, Long>> memoriaEsc = new HashMap<>();
+        cargarPromedios("resultados", promediosEsc, memoriaEsc, "escenarios_corrida_");
+
+        // Gráfico 10: Escenario 1 - Undo: tiempo de insertar
+        graficoLinea(promediosEsc, "insertar", tamanios,
+                "Escenario 1 (Undo): Tiempo de Inserción - Stack vs Queue",
+                "graficos/esc1_insertar.png");
+
+        // Gráfico 11: Escenario 1 - Undo: tiempo de deshacer
+        graficoLinea(promediosEsc, "deshacer", tamanios,
+                "Escenario 1 (Undo): Tiempo de Deshacer - Stack (correcto) vs Queue (incorrecto)",
+                "graficos/esc1_deshacer.png");
+
+        // Gráfico 12: Escenario 2 - FIFO: tiempo de encolar
+        graficoLinea(promediosEsc, "encolar", tamanios,
+                "Escenario 2 (FIFO): Tiempo de Encolar - Queue vs Stack",
+                "graficos/esc2_encolar.png");
+
+        // Gráfico 13: Escenario 2 - FIFO: tiempo de atender
+        graficoLinea(promediosEsc, "atender", tamanios,
+                "Escenario 2 (FIFO): Tiempo de Atender - Queue (correcto) vs Stack (incorrecto)",
+                "graficos/esc2_atender.png");
+
         System.out.println("Gráficos generados en /graficos/");
     }
 
     /**
      * Carga los JSON de la carpeta resultados y calcula promedios.
+     * Sobrecarga sin prefijo — lee todos los JSON de la carpeta.
      */
     private static void cargarPromedios(String carpeta,
             Map<String, Map<String, Map<Integer, Long>>> promediosTiempo,
             Map<String, Map<Integer, Long>> promediosMemoria) throws Exception {
+        cargarPromedios(carpeta, promediosTiempo, promediosMemoria, "corrida_");
+    }
+
+    /**
+     * Carga los JSON cuyo nombre empieza con el prefijo indicado.
+     */
+    private static void cargarPromedios(String carpeta,
+            Map<String, Map<String, Map<Integer, Long>>> promediosTiempo,
+            Map<String, Map<Integer, Long>> promediosMemoria,
+            String prefijo) throws Exception {
 
         // Acumuladores: estructura -> operacion -> tamanio -> [suma, count]
         Map<String, Map<String, Map<Integer, long[]>>> acumT = new HashMap<>();
@@ -104,6 +140,8 @@ public class GeneradorGraficos {
 
         for (File f : Objects.requireNonNull(dir.listFiles())) {
             if (!f.getName().endsWith(".json"))
+                continue;
+            if (!f.getName().startsWith(prefijo))
                 continue;
             List<ResultadoBenchmark> lista = parsearJSON(f);
             for (ResultadoBenchmark r : lista) {
